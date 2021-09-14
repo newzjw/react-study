@@ -3,6 +3,7 @@
 import React, {Component} from 'react';
 import Add from './components/add/add.jsx'
 import List from './components/list/list'
+import axios from 'axios'
 
 class App extends Component {
   state = {
@@ -10,7 +11,32 @@ class App extends Component {
       {id:'ud7tudjf7tje83h8g7',name:'班长1',content:'我觉得很简单'},
       {id:'ab7tudjf7tje83h8g8',name:'龙哥',content:'我是没学，学了我也会'},
       {id:'cd7tudjf7tje83h8g9',name:'老师',content:'其实没那么难'},
-    ]
+    ],
+    repoName:'', //仓库的名字
+    respoUrl:'',//仓库的地址
+    isLoading:true, //控制是否展示Loading....
+    keyWord:'r',//搜索的关键词
+    error:''//错误
+  }
+  componentDidMount(){
+    const URL = `https://api.github.com/search/users?q=${this.state.keyWord}`
+    //使用axios发送ajax请求
+    axios.get(URL)
+      .then((value)=>{
+        console.log(value.data.items[0]);
+        let {name,html_url} = value.data.items[0]
+        this.setState({
+          repoName:name,
+          respoUrl:html_url,
+          isLoading:false
+        })
+      })
+      .catch((reason)=>{
+        this.setState({
+          isLoading:false,
+          error:reason.message
+        })
+      })
   }
   //用于添加一条评论
   addComment = (commentObj)=>{
@@ -46,6 +72,7 @@ class App extends Component {
   }
   render() {
     let {comments} = this.state
+    const {repoName,respoUrl,keyWord} = this.state
     return (
       <div>
         <header className="site-header jumbotron">
@@ -61,6 +88,8 @@ class App extends Component {
           <Add addComment={this.addComment} />
           <List comments={comments} deleteComment={this.deleteComment} />
         </div>
+        <h2>在github上以【{keyWord}】字母开头的仓库中，点赞最多的是<a href={respoUrl}>{repoName}</a></h2>
+        
       </div>
     )
   }
